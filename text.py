@@ -1,7 +1,7 @@
 import json
 from  openai import OpenAI
 import re
-##调用API 和测试集  生成SQL语句并保存到json中
+##调用API 和测试集  ,生成SQL语句并保存到predictions.json中
 start = 0
 def read_json_file(filename):
     """读取JSON文件并返回内容"""
@@ -25,7 +25,7 @@ def construct_prompt(question, db_id, tables_data):
 
 def generate_pred_from_large_model(prompt):
         """调用OpenAI模型生成预测"""
-        client = OpenAI(api_key="sk-2IxxluLI5OzIxSN6olQ5WdKRwG1y7rCGfFSh8HEpC0MfZbtR", base_url="https://www.dmxapi.cn/v1")
+        client = OpenAI(api_key="your_key", base_url="  ")
         try:
             response = client.chat.completions.create(
                 model="deepseek-chat",
@@ -80,8 +80,8 @@ def generate_pred_from_large_model(prompt):
                     ],
             )
             sql_query = response.choices[0].message.content
-            cleaned_query = re.sub(r"^.*?```sql\n", "", sql_query, flags=re.DOTALL)  # 去除开头描述和```sql
-            cleaned_query = re.sub(r"\n```.*$", "", cleaned_query, flags=re.DOTALL)  # 去除末尾的```
+            cleaned_query = re.sub(r"^.*?```sql\n", "", sql_query, flags=re.DOTALL)  
+            cleaned_query = re.sub(r"\n```.*$", "", cleaned_query, flags=re.DOTALL)  
             # print(f"sql语句:\n{cleaned_query}")
             return cleaned_query
         except Exception as e:
@@ -91,9 +91,8 @@ def generate_pred_from_large_model(prompt):
 
 
 def main():
-    # 加载数据
-    train_data = read_json_file("D:\\桌面\\基础项目实践文件\\spider_data\\train_others.json")
-    tables_data = read_json_file("D:\\桌面\\基础项目实践文件\\spider_data\\tables.json")
+    train_data = read_json_file("train_others.json") #path to question
+    tables_data = read_json_file("tables.json") #path to table
     
     results = []
     for i, entry in enumerate(train_data):
@@ -114,14 +113,14 @@ def main():
                 
                 # 每处理五条记录保存一次
                 if (i + 1) % 5 == 0:
-                    with open('D:\\桌面\\基础项目实践文件\\spider_data\\predictions.json', 'w', encoding='utf-8') as f:
+                    with open('predictions.json', 'w', encoding='utf-8') as f:
                         json.dump(results, f, ensure_ascii=False, indent=4)
                     print(f"已保存前 {i + 1} 条记录到 predictions.json")
         except Exception as e:
             print(f"处理问题时出错: {entry['question']}, 错误: {str(e)}")
     # 如果还有未保存的结果，最后保存一次
     if results:
-        with open('D:\\桌面\\基础项目实践文件\\spider_data\\predictions.json', 'w', encoding='utf-8') as f:
+        with open('predictions.json', 'w', encoding='utf-8') as f:
             json.dump(results, f, ensure_ascii=False, indent=4)
         print(f"已保存剩余的记录到 predictions.json")
 
